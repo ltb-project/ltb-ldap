@@ -51,3 +51,27 @@ if (!$result) {
     exit 1;
 }
 ```
+
+## Tests
+
+Make sure you have docker or podman installed
+
+Get composer dependencies:
+
+```
+composer update
+```
+
+Run the tests (requires an internet connection for donwloading the openldap docker image):
+
+```
+./runtests
+```
+
+If you already have an openldap server, you can also adapt the tests in tests/ directory, and run them with:
+
+```
+vendor/bin/phpunit tests/Ltb
+```
+
+
