@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 // global variable for ldap_get_mail_for_notification function
 $GLOBALS['mail_attributes'] = array("mail");
 
-final class AttributeValueTest extends TestCase
+final class LdapTest extends TestCase
 {
 
     public $host = "ldap://127.0.0.1:33389/";
@@ -85,28 +85,17 @@ final class AttributeValueTest extends TestCase
     }
 
 
-    public function test_ldap_get_first_available_value(): void
+    public function test_connect(): void
     {
 
-        $ldap = ldap_connect($this->host);
-        ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+        list($ldap, $msg) = Ltb\Ldap::connect($this->host, false, $this->managerDN, $this->managerPW, 10, null);
 
-        // binding to ldap server
-        $ldapbind = ldap_bind($ldap, $this->managerDN, $this->managerPW);
-
-        // search for added entry
-        $sr = ldap_search($ldap, $this->ldap_entry_dn1, "(objectClass=*)", $this->attributes);
-        $entry = ldap_first_entry($ldap, $sr);
-
-        # Test ldap_get_first_available_value
-        $ent = Ltb\AttributeValue::ldap_get_first_available_value($ldap, $entry, $this->attributes);
-        $this->assertEquals($ent->attribute, "cn", "not getting attribute cn");
-        $this->assertEquals($ent->value, "test1", "not getting value test1 as cn first value");
+        $this->assertNotFalse($ldap, "Error while connecting to LDAP server");
+        $this->assertFalse($msg, "Error message returned while connecting to LDAP server");
     }
 
-    public function test_ldap_get_mail_for_notification(): void
+    public function test_get_list(): void
     {
-        
 
         $ldap = ldap_connect($this->host);
         ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
@@ -114,13 +103,11 @@ final class AttributeValueTest extends TestCase
         // binding to ldap server
         $ldapbind = ldap_bind($ldap, $this->managerDN, $this->managerPW);
 
-        // search for added entry
-        $sr = ldap_search($ldap, $this->ldap_entry_dn1, "(objectClass=*)", $GLOBALS['mail_attributes']);
-        $entry = ldap_first_entry($ldap, $sr);
+        // return hashmap: [ cn_value => sn_value ]
+        $result = Ltb\Ldap::get_list($ldap, $this->user_branch, "(uid=test)", "cn","sn");
 
-        # Test ldap_get_first_available_value
-        $mail = Ltb\AttributeValue::ldap_get_mail_for_notification($ldap, $entry);
-        $this->assertEquals($mail, 'test1@domain.com', "not getting test1@domain.com as mail for notification");
+        $this->assertEquals(array_keys($result)[0], 'test1', "not getting test1 as key in get_list function");
+        $this->assertEquals($result["test1"], 'test', "not getting test as value in get_list function");
 
     }
 
