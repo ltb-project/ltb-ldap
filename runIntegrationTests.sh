@@ -51,7 +51,7 @@ done
 
 # Run tests
 echo "Starting tests"
-vendor/bin/phpunit tests/Ltb
+vendor/bin/phpunit tests/IntegrationTests
 
 # Stop and remove openldap container and volumes
 $CTN stop ltb-directory-server

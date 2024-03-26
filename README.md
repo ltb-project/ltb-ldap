@@ -54,6 +54,24 @@ if (!$result) {
 
 ## Tests
 
+
+### Unit tests
+
+Get composer dependencies:
+
+```
+composer update
+```
+
+Run the tests:
+
+```
+vendor/bin/phpunit tests/Ltb
+```
+
+
+### Integration tests
+
 Make sure you have docker or podman installed
 
 Get composer dependencies:
@@ -65,13 +83,13 @@ composer update
 Run the tests (requires an internet connection for donwloading the openldap docker image):
 
 ```
-./runtests
+./runIntegrationTests.sh
 ```
 
 If you already have an openldap server, you can also adapt the tests in tests/ directory, and run them with:
 
 ```
-vendor/bin/phpunit tests/Ltb
+vendor/bin/phpunit tests/IntegrationTests
 ```
 
 

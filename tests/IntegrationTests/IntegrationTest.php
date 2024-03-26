@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 // global variable for ldap_get_mail_for_notification function
 $GLOBALS['mail_attributes'] = array("mail");
 
-final class LdapTest extends TestCase
+final class IntegrationTest extends TestCase
 {
 
     public $host = "ldap://127.0.0.1:33389/";
@@ -84,6 +84,45 @@ final class LdapTest extends TestCase
         ldap_unbind($ldap);
     }
 
+
+    public function test_ldap_get_first_available_value(): void
+    {
+
+        $ldap = ldap_connect($this->host);
+        ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+
+        // binding to ldap server
+        $ldapbind = ldap_bind($ldap, $this->managerDN, $this->managerPW);
+
+        // search for added entry
+        $sr = ldap_search($ldap, $this->ldap_entry_dn1, "(objectClass=*)", $this->attributes);
+        $entry = ldap_first_entry($ldap, $sr);
+
+        # Test ldap_get_first_available_value
+        $ent = Ltb\AttributeValue::ldap_get_first_available_value($ldap, $entry, $this->attributes);
+        $this->assertEquals($ent->attribute, "cn", "not getting attribute cn");
+        $this->assertEquals($ent->value, "test1", "not getting value test1 as cn first value");
+    }
+
+    public function test_ldap_get_mail_for_notification(): void
+    {
+        
+
+        $ldap = ldap_connect($this->host);
+        ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+
+        // binding to ldap server
+        $ldapbind = ldap_bind($ldap, $this->managerDN, $this->managerPW);
+
+        // search for added entry
+        $sr = ldap_search($ldap, $this->ldap_entry_dn1, "(objectClass=*)", $GLOBALS['mail_attributes']);
+        $entry = ldap_first_entry($ldap, $sr);
+
+        # Test ldap_get_first_available_value
+        $mail = Ltb\AttributeValue::ldap_get_mail_for_notification($ldap, $entry);
+        $this->assertEquals($mail, 'test1@domain.com', "not getting test1@domain.com as mail for notification");
+
+    }
 
     public function test_connect(): void
     {

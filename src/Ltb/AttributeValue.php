@@ -41,11 +41,11 @@ class AttributeValue {
     public static function ldap_get_first_available_value($ldap, $entry, $attributes)
     {
         # loop on attributes, stop on first found
-        $entry_attributes = ldap_get_attributes($ldap, $entry);
+        $entry_attributes = \Ltb\PhpLDAP::ldap_get_attributes($ldap, $entry);
         for ($i = 0; $i < sizeof($attributes); $i++) {
             $attribute = $attributes[$i];
             if ( in_array($attribute, $entry_attributes) ) {
-                $values = ldap_get_values($ldap, $entry, $attribute);
+                $values = \Ltb\PhpLDAP::ldap_get_values($ldap, $entry, $attribute);
                 if ( $values && ( $values['count'] > 0 ) ) {
                     return new \Ltb\AttributeValue($attribute,$values[0]);
                 }
