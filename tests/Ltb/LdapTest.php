@@ -1,19 +1,12 @@
 <?php
 
 require __DIR__ . '/../../vendor/autoload.php';
-use PHPUnit\Framework\TestCase;
 
 // global variable for ldap_get_mail_for_notification function
 $GLOBALS['mail_attributes'] = array("mail");
 
-final class LdapTest extends TestCase
+final class LdapTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
 {
-
-    protected function tearDown(): void
-    {
-        // Useful for destroying the mock between two tests
-        Mockery::close();
-    }
 
     public function test_connect(): void
     {
@@ -133,5 +126,194 @@ final class LdapTest extends TestCase
         $this->assertEquals($entries[1]['cn'][0], 'testcn1', "testcn1 has not been ordered correctly in entries array");
     }
 
+    public function test_sorted_search_with_sort_control(): void
+    {
 
+        $phpLDAPMock = Mockery::mock('overload:Ltb\PhpLDAP');
+
+        $phpLDAPMock->shouldreceive('ldap_read')
+                    ->with("ldap_connection", '', '(objectClass=*)', ['supportedControl'])
+                    ->andReturn("check");
+
+        $phpLDAPMock->shouldreceive('ldap_get_entries')
+                    ->andReturnUsing( function ($ldap, $ldap_result)
+                                      {
+                                          if ($ldap_result == "check") {
+                                              return [
+                                                         'count' => 1,
+                                                         0 => [
+                                                             'count' => 1,
+                                                             0 => 'supportedcontrol',
+                                                             'supportedcontrol' => [
+                                                                 'count' => 1,
+                                                                 0 => LDAP_CONTROL_SORTREQUEST
+                                                             ]
+                                                         ]
+                                                     ];
+                                          }
+                                          elseif($ldap_result == "ldap_search_result")
+                                          {
+                                              return [
+                                                         'count' => 2,
+                                                         0 => [
+                                                             'count' => 2,
+                                                             0 => 'cn',
+                                                             1 => 'sn',
+                                                             'cn' => [
+                                                                 'count' => 1,
+                                                                 0 => 'testcn2'
+                                                             ],
+                                                             'sn' => [
+                                                                 'count' => 1,
+                                                                 0 => 'aaaa'
+                                                             ]
+                                                         ],
+                                                         1 => [
+                                                             'count' => 2,
+                                                             0 => 'cn',
+                                                             1 => 'sn',
+                                                             'cn' => [
+                                                                 'count' => 1,
+                                                                 0 => 'testcn1'
+                                                             ],
+                                                             'sn' => [
+                                                                 'count' => 1,
+                                                                 0 => 'zzzz'
+                                                             ]
+                                                         ]
+                                                     ];
+
+                                          }
+                                          else
+                                          {
+                                              return "ldap_get_entries_error";
+                                          }
+                                      }
+                                    );
+
+        $phpLDAPMock->shouldreceive('ldap_search')
+                    ->with("ldap_connection",
+                           "ou=people,dc=my-domain,dc=com",
+                           "(objectClass=InetOrgPerson)",
+                           ["cn", "sn"],
+                           0,
+                           1000,
+                           -1,
+                           LDAP_DEREF_NEVER,
+                           [['oid' => LDAP_CONTROL_SORTREQUEST, 'value' => [['attr'=>'sn']]]]
+                          )
+                    ->andReturn("ldap_search_result");
+
+        $phpLDAPMock->shouldreceive('ldap_errno')
+                    ->with("ldap_connection")
+                    ->andReturn(0);
+
+        list($ldap_result,$errno,$entries) = Ltb\Ldap::sorted_search("ldap_connection",
+                                                                     "ou=people,dc=my-domain,dc=com",
+                                                                     "(objectClass=InetOrgPerson)",
+                                                                     ["cn", "sn"],
+                                                                     "sn",
+                                                                     1000
+                                                                    );
+
+        $this->assertEquals($ldap_result, "ldap_search_result", "error while getting ldap_search sorted result");
+        $this->assertEquals($errno, 0, "error code invalid while getting ldap_search sorted result");
+        $this->assertEquals($entries[0]['cn'][0], 'testcn2', "error while getting ldap_search sorted result: first entry is not testcn2");
+        $this->assertEquals($entries[1]['cn'][0], 'testcn1', "error while getting ldap_search sorted result: second entry is not testcn1");
+ 
+    }
+
+    public function test_sorted_search_without_sort_control(): void
+    {
+
+        $phpLDAPMock = Mockery::mock('overload:Ltb\PhpLDAP');
+
+        $phpLDAPMock->shouldreceive('ldap_read')
+                    ->with("ldap_connection", '', '(objectClass=*)', ['supportedControl'])
+                    ->andReturn("check");
+
+        $phpLDAPMock->shouldreceive('ldap_get_entries')
+                    ->andReturnUsing( function ($ldap, $ldap_result)
+                                      {
+                                          if ($ldap_result == "check") {
+                                              return [
+                                                         'count' => 1,
+                                                         0 => [
+                                                             'count' => 1,
+                                                             0 => 'supportedcontrol',
+                                                             'supportedcontrol' => [
+                                                                 'count' => 1,
+                                                                 0 => LDAP_CONTROL_VLVREQUEST
+                                                             ]
+                                                         ]
+                                                     ];
+                                          }
+                                          elseif($ldap_result == "ldap_search_result")
+                                          {
+                                              return [
+                                                         'count' => 2,
+                                                         0 => [
+                                                             'count' => 2,
+                                                             0 => 'cn',
+                                                             1 => 'sn',
+                                                             'cn' => [
+                                                                 'count' => 1,
+                                                                 0 => 'testcn1'
+                                                             ],
+                                                             'sn' => [
+                                                                 'count' => 1,
+                                                                 0 => 'zzzz'
+                                                             ]
+                                                         ],
+                                                         1 => [
+                                                             'count' => 2,
+                                                             0 => 'cn',
+                                                             1 => 'sn',
+                                                             'cn' => [
+                                                                 'count' => 1,
+                                                                 0 => 'testcn2'
+                                                             ],
+                                                             'sn' => [
+                                                                 'count' => 1,
+                                                                 0 => 'aaaa'
+                                                             ]
+                                                         ],
+                                                     ];
+
+                                          }
+                                          else
+                                          {
+                                              return "ldap_get_entries_error";
+                                          }
+                                      }
+                                    );
+
+        $phpLDAPMock->shouldreceive('ldap_search')
+                    ->with("ldap_connection",
+                           "ou=people,dc=my-domain,dc=com",
+                           "(objectClass=InetOrgPerson)",
+                           ["cn", "sn"],
+                           0,
+                           1000
+                          )
+                    ->andReturn("ldap_search_result");
+
+        $phpLDAPMock->shouldreceive('ldap_errno')
+                    ->with("ldap_connection")
+                    ->andReturn(0);
+
+        list($ldap_result,$errno,$entries) = Ltb\Ldap::sorted_search("ldap_connection",
+                                                                     "ou=people,dc=my-domain,dc=com",
+                                                                     "(objectClass=InetOrgPerson)",
+                                                                     ["cn", "sn"],
+                                                                     "sn",
+                                                                     1000
+                                                                    );
+
+        $this->assertEquals($ldap_result, "ldap_search_result", "error while getting ldap_search sorted result");
+        $this->assertEquals($errno, 0, "error code invalid while getting ldap_search sorted result");
+        $this->assertEquals($entries[0]['cn'][0], 'testcn2', "error while getting ldap_search sorted result: first entry is not testcn2");
+        $this->assertEquals($entries[1]['cn'][0], 'testcn1', "error while getting ldap_search sorted result: second entry is not testcn1");
+
+    }
 }

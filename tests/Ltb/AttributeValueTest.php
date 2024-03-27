@@ -6,14 +6,8 @@ use PHPUnit\Framework\TestCase;
 // global variable for ldap_get_mail_for_notification function
 $GLOBALS['mail_attributes'] = array("mail");
 
-final class AttributeValueTest extends TestCase
+final class AttributeValueTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
 {
-
-    protected function tearDown(): void
-    {
-        // Useful for destroying the mock between two tests
-        Mockery::close();
-    }
 
     public function test_ldap_get_first_available_value(): void
     {
