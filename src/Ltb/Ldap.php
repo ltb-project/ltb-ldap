@@ -8,32 +8,32 @@ final class Ldap {
     static function connect($ldap_url, $ldap_starttls, $ldap_binddn, $ldap_bindpw, $ldap_network_timeout, $ldap_krb5ccname) {
 
         # Connect to LDAP
-        $ldap = \ldap_connect($ldap_url);
-        \ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
-        \ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
+        $ldap = \Ltb\PhpLDAP::ldap_connect($ldap_url);
+        \Ltb\PhpLDAP::ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+        \Ltb\PhpLDAP::ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
         if ( isset($ldap_network_timeout) ) {
-            ldap_set_option($ldap, LDAP_OPT_NETWORK_TIMEOUT, $ldap_network_timeout);
+            \Ltb\PhpLDAP::ldap_set_option($ldap, LDAP_OPT_NETWORK_TIMEOUT, $ldap_network_timeout);
         }
 
-        if ( $ldap_starttls && !ldap_start_tls($ldap) ) {
+        if ( $ldap_starttls && !\Ltb\PhpLDAP::ldap_start_tls($ldap) ) {
             error_log("LDAP - Unable to use StartTLS");
             return array(false, "ldaperror");
         }
 
         # Bind
         if ( isset($ldap_binddn) && isset($ldap_bindpw) ) {
-            $bind = ldap_bind($ldap, $ldap_binddn, $ldap_bindpw);
+            $bind = \Ltb\PhpLDAP::ldap_bind($ldap, $ldap_binddn, $ldap_bindpw);
         } elseif ( isset($ldap_krb5ccname) ) {
             putenv("KRB5CCNAME=".$ldap_krb5ccname);
-            $bind = ldap_sasl_bind($ldap, NULL, NULL, 'GSSAPI') or error_log('LDAP - GSSAPI Bind failed');
+            $bind = \Ltb\PhpLDAP::ldap_sasl_bind($ldap, NULL, NULL, 'GSSAPI') or error_log('LDAP - GSSAPI Bind failed');
         } else {
-            $bind = ldap_bind($ldap);
+            $bind = \Ltb\PhpLDAP::ldap_bind($ldap);
         }
 
         if ( !$bind ) {
-            $errno = ldap_errno($ldap);
+            $errno = \Ltb\PhpLDAP::ldap_errno($ldap);
             if ( $errno ) {
-                error_log("LDAP - Bind error $errno  (".ldap_error($ldap).")");
+                error_log("LDAP - Bind error $errno  (".\Ltb\PhpLDAP::ldap_error($ldap).")");
             } else {
                 error_log("LDAP - Bind error");
             }
@@ -50,14 +50,14 @@ final class Ldap {
         if ($ldap) {
 
             # Search entry
-            $search = ldap_search($ldap, $ldap_base, $ldap_filter, array($key, $value) );
+            $search = \Ltb\PhpLDAP::ldap_search($ldap, $ldap_base, $ldap_filter, array($key, $value) );
 
-            $errno = ldap_errno($ldap);
+            $errno = \Ltb\PhpLDAP::ldap_errno($ldap);
 
             if ( $errno ) {
-                error_log("LDAP - Search error $errno  (".ldap_error($ldap).")");
+                error_log("LDAP - Search error $errno  (".\Ltb\PhpLDAP::ldap_error($ldap).")");
             } else {
-                $entries = ldap_get_entries($ldap, $search);
+                $entries = \Ltb\PhpLDAP::ldap_get_entries($ldap, $search);
                 for ($i=0; $i<$entries["count"]; $i++) {
                     if(isset($entries[$i][$key][0])) {
                         $return[$entries[$i][$key][0]] = isset($entries[$i][$value][0]) ? $entries[$i][$value][0] : $entries[$i][$key][0];
@@ -105,28 +105,28 @@ final class Ldap {
         if (isset($sortby) and $sortby)
         {
             $check_attribute='supportedControl';
-            $check = ldap_read($ldap, '', '(objectClass=*)', [$check_attribute]);
-            $entries=ldap_get_entries($ldap, $check);
+            $check = \Ltb\PhpLDAP::ldap_read($ldap, '', '(objectClass=*)', [$check_attribute]);
+            $entries = \Ltb\PhpLDAP::ldap_get_entries($ldap, $check);
             if (in_array(LDAP_CONTROL_SORTREQUEST, $entries[0]['supportedcontrol'],true)) {
                 # server side sort
                 $controls=[['oid' => LDAP_CONTROL_SORTREQUEST, 'value' => [['attr'=>$sortby]]]];
                 # if $sortby is not in $attributes ? what to do ?
-                $ldap_result = ldap_search($ldap, $ldap_base, $ldap_filter, $attributes, 0, $ldap_size_limit, -1, LDAP_DEREF_NEVER, $controls );
-                $errno = ldap_errno($ldap);
+                $ldap_result = \Ltb\PhpLDAP::ldap_search($ldap, $ldap_base, $ldap_filter, $attributes, 0, $ldap_size_limit, -1, LDAP_DEREF_NEVER, $controls );
+                $errno = \Ltb\PhpLDAP::ldap_errno($ldap);
                 if ( $errno === 0 )
                 {
-                    $entries=ldap_get_entries($ldap, $ldap_result);
+                    $entries=\Ltb\PhpLDAP::ldap_get_entries($ldap, $ldap_result);
                 }
             }
         }
 
         if (!isset($errno))
         {
-            $ldap_result = ldap_search($ldap, $ldap_base, $ldap_filter, $attributes, 0, $ldap_size_limit);
-            $errno = ldap_errno($ldap);
+            $ldap_result = \Ltb\PhpLDAP::ldap_search($ldap, $ldap_base, $ldap_filter, $attributes, 0, $ldap_size_limit);
+            $errno = \Ltb\PhpLDAP::ldap_errno($ldap);
             if ( $errno === 0 )
             {
-                $entries=ldap_get_entries($ldap, $ldap_result);
+                $entries=\Ltb\PhpLDAP::ldap_get_entries($ldap, $ldap_result);
                 Ldap::ldapSort($entries,$sortby);
             }
             else {
