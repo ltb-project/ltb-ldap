@@ -93,4 +93,45 @@ final class LdapTest extends TestCase
 
     }
 
+    public function test_ldapSort(): void
+    {
+
+        $entries = [
+            'count' => 2,
+            0 => [
+                'count' => 2,
+                0 => 'cn',
+                1 => 'sn',
+                'cn' => [
+                    'count' => 1,
+                    0 => 'testcn1'
+                ],
+                'sn' => [
+                    'count' => 1,
+                    0 => 'zzzz'
+                ]
+            ],
+            1 => [
+                'count' => 2,
+                0 => 'cn',
+                1 => 'sn',
+                'cn' => [
+                    'count' => 1,
+                    0 => 'testcn2'
+                ],
+                'sn' => [
+                    'count' => 1,
+                    0 => 'aaaa'
+                ]
+            ]
+        ];
+
+        $return = Ltb\Ldap::ldapSort($entries, "sn");
+
+        $this->assertTrue($return, "Weird value returned by ldapSort function");
+        $this->assertEquals($entries[0]['cn'][0], 'testcn2', "testcn2 has not been ordered correctly in entries array");
+        $this->assertEquals($entries[1]['cn'][0], 'testcn1', "testcn1 has not been ordered correctly in entries array");
+    }
+
+
 }
