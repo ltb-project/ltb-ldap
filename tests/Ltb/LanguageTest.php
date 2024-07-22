@@ -9,7 +9,7 @@ final class LanguageTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
         # User-Agent Language
         $_SERVER['HTTP_ACCEPT_LANGUAGE'] = "en";
         
-        $availableLanguages = array("ar", "cn", "de", "el", "es", "fr", "it", "nb-NO", "pl", "pt-PT", "ru", "sl", "tr", "zh-CN", "ca", "cs", "ee", "en", "eu", "hu", "ja", "nl", "pt-BR", "rs", "sk", "sv", "uk", "zh-TW");
+        $availableLanguages = array("ar","cn","de","el","es","fr","it","nb-NO","pl","pt-PT","ru","sl","tr","zh-CN","ca","cs","ee","en","eu","hu","ja","nl","pt-BR","rs","sk","sv","uk","zh-TW");
         $defaultLanguage = "en";
 
         # Execute function
@@ -22,7 +22,7 @@ final class LanguageTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
         # User-Agent Language
         $_SERVER['HTTP_ACCEPT_LANGUAGE'] = "en";
         
-        $availableLanguages = array("ar", "cn", "de", "el", "es", "fr", "it", "nb-NO", "pl", "pt-PT", "ru", "sl", "tr", "zh-CN", "ca", "cs", "ee", "en", "eu", "hu", "ja", "nl", "pt-BR", "rs", "sk", "sv", "uk", "zh-TW");
+        $availableLanguages = array("ar","cn","de","el","es","fr","it","nb-NO","pl","pt-PT","ru","sl","tr","zh-CN","ca","cs","ee","en","eu","hu","ja","nl","pt-BR","rs","sk","sv","uk","zh-TW");
         $allowedLanguages = array("fr");
         $defaultLanguage = "fr";
 
@@ -37,7 +37,7 @@ final class LanguageTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
         # User-Agent Language
         $_SERVER['HTTP_ACCEPT_LANGUAGE'] = "ar, en";
         
-        $availableLanguages = array("ar", "cn", "de", "el", "es", "it", "nb-NO", "pl", "pt-PT", "ru", "sl", "tr", "zh-CN", "ca", "cs", "ee", "en", "eu", "hu", "ja", "nl", "pt-BR", "rs", "sk", "sv", "uk", "zh-TW");
+        $availableLanguages = array("ar","cn","de","el","es","fr","it","nb-NO","pl","pt-PT","ru","sl","tr","zh-CN","ca","cs","ee","en","eu","hu","ja","nl","pt-BR","rs","sk","sv","uk","zh-TW");
         $allowedLanguages = array("fr");
         $defaultLanguage = "en";
 
