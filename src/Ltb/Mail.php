@@ -50,16 +50,17 @@ class Mail extends PHPMailer{
  
     }
 
-    /* @function boolean send_mail(string $mail, string $mail_from, string $subject, string $body, array $data)
+    /* @function boolean send_mail(string $mail, string $mail_from, string $subject, string $body, array $data, string $html_body)
      * Send a mail, replace strings in body
      * @param mail Destination or array of destinations.
      * @param mail_from Sender
      * @param subject Subject
      * @param body Body
      * @param data Data for string replacement
+     * @param html_body HTML body
      * @return result
      */
-    public function send_mail($mail, $mail_from, $mail_from_name, $subject, $body, $data) {
+    public function send_mail($mail, $mail_from, $mail_from_name, $subject, $body, $data, $html_body = NULL) {
 
         $result = false;
 
@@ -91,7 +92,13 @@ class Mail extends PHPMailer{
             $this->addAddress($mail);
         }
         $this->Subject = $subject;
-        $this->Body = $body;
+
+        if ($html_body) {
+            $this->Body = $html_body;
+            $this->AltBody = $body;
+        } else {
+            $this->Body = $body;
+        }
 
         $result = $this->send();
 
