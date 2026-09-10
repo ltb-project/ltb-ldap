@@ -137,4 +137,51 @@ final class MailTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
 
         $this->assertFalse($result, "Unexpected 'not false' send() result");
     }
+
+    public function test_send_mail_html(): void
+    {
+
+        $mail_from = "{mail_from}";
+        $mail_from_name = "ltb admin sender";
+        $mail_signature = "";
+        $mail = ['{mail_to}','ltbadmin@domain.com'];
+        $data = [
+                  'mail_from' => 'ltbadminsender@example.com',
+                  "login" => 'ltbtest',
+                  "mail_to" => 'ltbtest@domain.com',
+                  "password" => 'secret'
+                ];
+        $subject = 'Mail test to {login}';
+        $body = 'Hello {login}, this is a mail test from {mail_from}. Your new password is {password}';
+        $html_body = '<html><body><p>Hello, this is a mail test</p></body></html>';
+
+        $mailerMock = Mockery::mock('\Ltb\Mail')->makePartial();
+
+        $mailerMock->shouldreceive('clearAddresses')
+                   ->andReturn(true);
+
+        $mailerMock->shouldreceive('setFrom')
+                   ->with('ltbadminsender@example.com', 'ltb admin sender')
+                   ->andReturn(true);
+
+        $mailerMock->shouldreceive('addReplyTo')
+                   ->with('ltbadminsender@example.com', 'ltb admin sender')
+                   ->andReturn(true);
+
+        $mailerMock->shouldreceive('addAddress')
+                   ->with(Mockery::anyOf('ltbtest@domain.com', 'ltbadmin@domain.com'))
+                   ->andReturn(true);
+
+        $mailerMock->shouldreceive('send')
+                   ->andReturn(true);
+
+        $mailerMock->__construct(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+
+        $result = $mailerMock->send_mail($mail, $mail_from, $mail_from_name, $subject, $body, $data, $html_body);
+
+        $this->assertEquals('Mail test to ltbtest', $mailerMock->Subject, "Error while processing subject");
+        $this->assertEquals('<html><body><p>Hello, this is a mail test</p></body></html>', $mailerMock->Body, "Error while processing body");
+        $this->assertEquals('Hello ltbtest, this is a mail test from ltbadminsender@example.com. Your new password is secret', $mailerMock->AltBody, "Error while processing alt body");
+        $this->assertNotFalse($result, "Error in send() result");
+    }
 }
